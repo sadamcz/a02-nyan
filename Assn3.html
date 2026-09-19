@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="description" content="Nyan Cat Game">
+    <meta charset="utf-8">
+    <title>NYAN CAT</title>
+</head>
+
+<body>
+
+<canvas id="myCanvas" width="1000" height="300" style="background-color:#000080;">
+</canvas>
+
+<script>
+
+var canvas = document.getElementById("myCanvas");
+var context = canvas.getContext("2d");
+
+// MODEL
+
+// character position
+var x = 1000;
+var y = 0;
+
+// jumping
+var velocity = 0;
+var jumping = false;
+
+// trail position
+var trail = [];
+
+// little popping squares
+var squares = [];
+
+// CONTROLLER
+
+// press spacebar to jump
+document.addEventListener("keydown", function(event) {
+
+    if (event.code === "Space" && !jumping) {
+
+        velocity = -8;
+        jumping = true;
+
+    }
+
+});
+// VIEW
+
+function drawCharacter() {
+
+    context.save();
+
+    context.translate(x, y);
+
+    // left foot
+    context.beginPath();
+    context.rect(-175, 210, 20, 35);
+    context.fillStyle = "grey";
+    context.fill();
+    context.strokeStyle = "black";
+    context.stroke();
+
+    // right foot
+    context.beginPath();
+    context.rect(-80, 210, 20, 35);
+    context.fillStyle = "grey";
+    context.fill();
+    context.strokeStyle = "black";
+    context.stroke();
+
+    // back rectangle
+    context.beginPath();
+    context.rect(-220, 125, 200, 100);
+    context.fillStyle = "#f6c49d";
+    context.fill();
+    context.strokeStyle = "black";
+    context.stroke();
+
+    // inner rectangle
+    context.beginPath();
+    context.rect(-210, 135, 180, 80);
+    context.fillStyle = "#ffb1dd";
+    context.fill();
+    context.strokeStyle = "black";
+    context.stroke();
+
+    // sprinkles
+    context.fillStyle = "#fb9be3";
+
+    context.fillRect(-195, 150, 8, 8);
+    context.fillRect(-175, 180, 8, 8);
+    context.fillRect(-150, 145, 8, 8);
+    context.fillRect(-125, 170, 8, 8);
+    context.fillRect(-100, 150, 8, 8);
+    context.fillRect(-75, 190, 8, 8);
+    context.fillRect(-50, 160, 8, 8);
+
+    context.fillRect(-185, 200, 8, 8);
+    context.fillRect(-160, 165, 8, 8);
+    context.fillRect(-135, 195, 8, 8);
+    context.fillRect(-110, 185, 8, 8);
+    context.fillRect(-85, 140, 8, 8);
+    context.fillRect(-60, 180, 8, 8);
+
+    // main head
+    context.beginPath();
+    context.arc(-250, 150, 50, 0, 2 * Math.PI, false);
+    context.fillStyle = "#818581";
+    context.fill();
+    context.strokeStyle = "black";
+    context.stroke();
+
+    // left ear
+    context.beginPath();
+    context.moveTo(-285, 115);
+    context.lineTo(-275, 70);
+    context.lineTo(-260, 110);
+    context.closePath();
+    context.fillStyle = "grey";
+    context.fill();
+    context.strokeStyle = "grey";
+    context.stroke();
+
+    // right ear
+    context.beginPath();
+    context.moveTo(-240, 110);
+    context.lineTo(-225, 70);
+    context.lineTo(-215, 115);
+    context.closePath();
+    context.fillStyle = "grey";
+    context.fill();
+    context.strokeStyle = "grey";
+    context.stroke();
+
+    // left eye
+    context.beginPath();
+    context.arc(-270, 140, 12, 0, 2 * Math.PI, false);
+    context.fillStyle = "black";
+    context.fill();
+
+    // right eye
+    context.beginPath();
+    context.arc(-230, 140, 12, 0, 2 * Math.PI, false);
+    context.fillStyle = "black";
+    context.fill();
+
+    // eye highlights
+    context.beginPath();
+    context.arc(-274, 136, 5, 0, 2 * Math.PI, false);
+    context.fillStyle = "white";
+    context.fill();
+
+    context.beginPath();
+    context.arc(-234, 136, 5, 0, 2 * Math.PI, false);
+    context.fill();
+
+    // blush left
+    context.beginPath();
+    context.arc(-280, 162, 6, 0, 2 * Math.PI, false);
+    context.fillStyle = "#ff8fcf";
+    context.fill();
+
+    // blush right
+    context.beginPath();
+    context.arc(-220, 162, 6, 0, 2 * Math.PI, false);
+    context.fill();
+
+    // nose
+    context.beginPath();
+    context.moveTo(-255, 160);
+    context.lineTo(-245, 160);
+    context.lineTo(-250, 170);
+    context.closePath();
+    context.fillStyle = "black";
+    context.fill();
+
+    // mouth
+    context.beginPath();
+    context.arc(-245, 175, 7, 0, Math.PI, false);
+    context.arc(-255, 175, 7, 0, Math.PI, false);
+    context.strokeStyle = "black";
+    context.lineWidth = 2;
+    context.stroke();
+
+    context.restore();
+}
+
+
+function drawRainbowTrail() {
+
+    var colors = [
+        "red",
+        "orange",
+        "yellow",
+        "green",
+        "blue",
+        "purple"
+    ];
+
+    for (var i = 0; i < trail.length; i++) {
+
+        for (var j = 0; j < colors.length; j++) {
+
+            context.beginPath();
+
+            context.arc(
+                trail[i].x,
+                trail[i].y + (j - 2.5) * 5,
+                5,
+                0,
+                2 * Math.PI
+            );
+
+            context.fillStyle = colors[j];
+            context.fill();
+        }
+    }
+}
+
+
+function drawSquares() {
+
+    var currentTime = Date.now();
+
+    for (var i = squares.length - 1; i >= 0; i--) {
+
+        if (currentTime - squares[i].time > 1000) {
+
+            squares.splice(i, 1);
+            continue;
+
+        }
+
+        context.fillStyle = "white";
+
+        context.fillRect(
+            squares[i].x,
+            squares[i].y,
+            5,
+            5
+        );
+    }
+}
+
+
+
+function update() {
+
+    // move character left
+    x -= 1;
+
+    // jumping physics
+    y += velocity;
+
+    velocity += 0.4;
+
+
+    // land back on the ground
+    if (y >= 0) {
+
+        y = 0;
+        velocity = 0;
+        jumping = false;
+
+    }
+
+
+    // add character position to trail
+    trail.push({
+        x: x - 20,
+        y: 175 + y
+    });
+
+
+    // create random squares
+    if (Math.random() < 0.15) {
+
+        squares.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            time: Date.now()
+        });
+
+    }
+
+
+    // remove old squares
+    var currentTime = Date.now();
+
+    for (var i = squares.length - 1; i >= 0; i--) {
+
+        if (currentTime - squares[i].time > 1000) {
+
+            squares.splice(i, 1);
+
+        }
+
+    }
+
+
+    // reset character to the right
+    if (x < 250) {
+
+        x = 1000;
+        trail = [];
+
+    }
+
+}
+
+
+// DRAW
+
+
+function draw() {
+
+    context.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    drawRainbowTrail();
+    drawSquares();
+    drawCharacter();
+
+}
+
+
+var previous = performance.now();
+
+var lag = 0;
+
+// amount of time between updates
+var timestep = 1000 / 60;
+
+
+// main loop
+function mainLoop(currentTime) {
+
+    //  how much time has passed
+    var elapsed = currentTime - previous;
+
+    previous = currentTime;
+
+    // add elapsed time to our lag
+    lag += elapsed;
+
+
+    // updates the game using a fixed time step
+    while (lag >= timestep) {
+
+        update();
+
+        lag -= timestep;
+
+    }
+
+
+    draw();
+
+
+    // runs the loop again
+    requestAnimationFrame(mainLoop);
+
+}
+
+
+// starts the game loop
+requestAnimationFrame(mainLoop);
+
+</script>
+
+</body>
+
+</html>
+
